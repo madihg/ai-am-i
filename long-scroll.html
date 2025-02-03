@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Visualization</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            background: white;
+            min-height: 400vh; /* Further increased to accommodate larger images and spacing */
+            min-width: 300vw;  /* Further increased for horizontal spacing */
+            overflow: auto;    /* Allows both vertical and horizontal scrolling */
+            position: relative;
+        }
+
+        .container {
+            position: relative;
+            width: 300vw;  /* Increased width for horizontal spacing */
+            height: 400vh; /* Increased height for vertical spacing */
+        }
+
+        .image-container {
+            position: absolute;
+            width: 420px; /* 260px + 260px + 20px spacing */
+            height: 260px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            /* Added to position lines behind images */
+            z-index: 1;
+        }
+
+        /* Decorative lines behind images */
+        .image-container::before {
+            content: "";
+            position: absolute;
+            top: 50%;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background: #ccc;
+            transform: translateY(-50%);
+            z-index: -1; /* Position behind images */
+        }
+
+        .image-container img {
+            width: 260px;  /* Increased by 30% */
+            height: 260px; /* Increased by 30% */
+            object-fit: cover;
+        }
+
+        /* Position the image containers with increased vertical and horizontal spacing */
+        #babylon { top: 6%; left: 10%; }
+        #knowles { top: 41%; left: 45%; }      /* Increased from 31% to 41% top and 38% to 45% left */
+        #iching { top: 84%; left: 80%; }        /* Increased from 63% to 84% top and 63% to 80% left */
+        #mureau { top: 140%; left: 200%; }      /* Increased distance from Sepher and Baghdad */
+        #sepher { top: 105%; left: 100%; }      /* Positioned at 105% top and 100% left */
+        #baghdad { top: 115%; left: 100%; }     /* Positioned at 115% top and 100% left */
+        #attention { top: 206%; left: 163%; }    /* Increased from 206% to maintain connection */
+
+        .svg-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1000;
+        }
+
+        .illustration {
+            opacity: 0;
+            transform: translate(0, 0);
+        }
+
+        @keyframes fadeOutUp {
+            0% {
+                opacity: 1;
+                transform: translate(0, 0);
+            }
+            100% {
+                opacity: 0;
+                transform: translate(20px, -20px);
+            }
+        }
+
+        .fade-out-up {
+            animation: fadeOutUp 5s forwards;
+        }
+
+        .connecting-lines {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 0; /* Ensure lines are behind images */
+        }
+
+        path {
+            fill: none;
+            stroke: #333;
+            stroke-width: 2;
+            opacity: 0.5;
+        }
+
+        /* Styles for criss-crossing lines */
+        .criss-cross {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 2000; /* Above all other elements */
+        }
+
+        .criss-cross line {
+            stroke: black; /* Ensured lines are black */
+            stroke-width: 3;
+            stroke-dasharray: 1000;
+            stroke-dashoffset: 1000;
+            animation: drawLine 2s forwards;
+        }
+
+        @keyframes drawLine {
+            to {
+                stroke-dashoffset: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Image containers with duplicated images -->
+        <div id="babylon" class="image-container">
+            <img src="babylon.png" alt="Babylon">
+            <img src="babylon2.png" alt="Babylon 2">
+        </div>
+        <div id="knowles" class="image-container">
+            <img src="knowles.png" alt="Knowles">
+            <img src="knowles2.png" alt="Knowles 2">
+        </div>
+        <div id="iching" class="image-container">
+            <img src="iching.png" alt="I Ching">
+            <img src="iching2.png" alt="I Ching 2">
+        </div>
+        <div id="mureau" class="image-container">
+            <img src="mureau.png" alt="Mureau">
+            <img src="mureau2.png" alt="Mureau 2">
+        </div>
+        <div id="sepher" class="image-container">
+            <img src="sepher.png" alt="Sepher">
+            <img src="sepher2.png" alt="Sepher 2">
+        </div>
+        <div id="baghdad" class="image-container">
+            <img src="baghdad.png" alt="Baghdad">
+            <img src="baghdad2.png" alt="Baghdad 2">
+        </div>
+        <div id="attention" class="image-container">
+            <img src="attention.png" alt="Attention">
+            <img src="attention2.png" alt="Attention 2">
+        </div>
+
+        <!-- SVG overlay for illustrations -->
+        <svg class="svg-overlay">
+            <defs>
+                <!-- Babylon illustration -->
+                <g id="babylon-illust">
+                    <path d="M50,100 C20,80 20,120 50,100" fill="none" stroke="black"/>
+                    <ellipse cx="60" cy="90" rx="20" ry="15" fill="none" stroke="black"/>
+                    <path d="M40,100 Q50,120 60,100" fill="none" stroke="black"/>
+                </g>
+
+                <!-- Knowles illustration -->
+                <g id="knowles-illust">
+                    <path d="M30,30 L70,70 M30,70 L70,30" stroke="black" stroke-width="3"/>
+                    <rect x="25" y="25" width="50" height="50" fill="none" stroke="black"/>
+                    <path d="M40,20 L60,20 L50,10 Z" fill="black"/>
+                </g>
+
+                <!-- I Ching illustration -->
+                <g id="iching-illust">
+                    <g transform="translate(20,20)">
+                        <line x1="0" y1="0" x2="60" y2="0" stroke="black" stroke-width="8"/>
+                        <line x1="0" y1="20" x2="60" y2="20" stroke="black" stroke-width="8"/>
+                        <line x1="0" y1="40" x2="30" y2="40" stroke="black" stroke-width="8"/>
+                        <line x1="40" y1="40" x2="60" y2="40" stroke="black" stroke-width="8"/>
+                    </g>
+                </g>
+
+                <!-- Mureau illustration -->
+                <g id="mureau-illust">
+                    <text x="10" y="20" font-family="monospace" fill="black">Fra</text>
+                    <text x="50" y="40" font-family="monospace" fill="black">gm</text>
+                    <text x="20" y="60" font-family="monospace" fill="black">ented</text>
+                    <text x="40" y="80" font-family="monospace" fill="black">text</text>
+                </g>
+
+                <!-- Sepher illustration -->
+                <g id="sepher-illust">
+                    <text x="30" y="40" font-family="serif" font-size="24" fill="black">א</text>
+                    <text x="50" y="60" font-family="serif" font-size="24" fill="black">ב</text>
+                    <text x="70" y="40" font-family="serif" font-size="24" fill="black">ג</text>
+                    <circle cx="50" cy="50" r="30" fill="none" stroke="black"/>
+                </g>
+
+                <!-- Baghdad illustration -->
+                <g id="baghdad-illust">
+                    <text x="30" y="40" font-family="serif" font-size="24" fill="black">١٢٣</text>
+                    <text x="50" y="60" font-family="serif" font-size="24" fill="black">ابج</text>
+                    <path d="M20,70 Q50,20 80,70" fill="none" stroke="black"/>
+                </g>
+
+                <!-- Attention illustration -->
+                <g id="attention-illust">
+                    <rect x="10" y="10" width="80" height="80" fill="none" stroke="black"/>
+                    <line x1="20" y1="20" x2="80" y2="80" stroke="black"/>
+                    <line x1="20" y1="80" x2="80" y2="20" stroke="black"/>
+                    <circle cx="50" cy="50" r="5" fill="black"/>
+                </g>
+            </defs>
+        </svg>
+
+        <!-- SVG for connecting lines -->
+        <svg class="connecting-lines"></svg>
+    </div>
+
+    <script>
+        // Store references to elements
+        const container = document.querySelector('.container');
+        const svgOverlay = document.querySelector('.svg-overlay');
+        const connectingLines = document.querySelector('.connecting-lines');
+        const images = document.querySelectorAll('.image-container');
+
+        // Function to show illustration
+        function showIllustration(id) {
+            // Remove any existing illustrations
+            const existing = svgOverlay.querySelector('.illustration');
+            if (existing) existing.remove();
+
+            // Create new illustration
+            const illustration = document.createElementNS("http://www.w3.org/2000/svg", "use");
+            illustration.setAttributeNS(null, "href", `#${id}-illust`);
+            illustration.setAttributeNS(null, "x", "100");
+            illustration.setAttributeNS(null, "y", "100");
+            illustration.classList.add('illustration');
+            svgOverlay.appendChild(illustration);
+
+            // Trigger animation
+            requestAnimationFrame(() => {
+                illustration.style.opacity = "1";
+                illustration.classList.add('fade-out-up');
+            });
+
+            // Remove after animation
+            setTimeout(() => {
+                illustration.remove();
+            }, 5000);
+        }
+
+        // Function to create criss-crossing lines on click with random directions
+        function createCrissCrossLines() {
+            // Create SVG container
+            const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+            svg.classList.add('criss-cross');
+
+            // Determine random angles for the lines
+            const angle1 = Math.random() * 360;
+            const angle2 = (angle1 + 90 + (Math.random() * 180)) % 360; // Ensure lines are not parallel
+
+            // Calculate line endpoints based on angles
+            const width = window.innerWidth;
+            const height = window.innerHeight;
+
+            // Line 1
+            const length1 = Math.sqrt(width ** 2 + height ** 2);
+            const x1_start = width / 2;
+            const y1_start = height / 2;
+            const x1_end = x1_start + length1 * Math.cos(angle1 * Math.PI / 180);
+            const y1_end = y1_start + length1 * Math.sin(angle1 * Math.PI / 180);
+
+            // Line 2
+            const length2 = Math.sqrt(width ** 2 + height ** 2);
+            const x2_start = width / 2;
+            const y2_start = height / 2;
+            const x2_end = x2_start + length2 * Math.cos(angle2 * Math.PI / 180);
+            const y2_end = y2_start + length2 * Math.sin(angle2 * Math.PI / 180);
+
+            // Create line elements
+            const line1 = document.createElementNS("http://www.w3.org/2000/svg", "line");
+            line1.setAttribute("x1", x1_start);
+            line1.setAttribute("y1", y1_start);
+            line1.setAttribute("x2", x1_end);
+            line1.setAttribute("y2", y1_end);
+
+            const line2 = document.createElementNS("http://www.w3.org/2000/svg", "line");
+            line2.setAttribute("x1", x2_start);
+            line2.setAttribute("y1", y2_start);
+            line2.setAttribute("x2", x2_end);
+            line2.setAttribute("y2", y2_end);
+
+            svg.appendChild(line1);
+            svg.appendChild(line2);
+
+            document.body.appendChild(svg);
+
+            // Remove the SVG after 2 seconds
+            setTimeout(() => {
+                svg.remove();
+            }, 2000);
+        }
+
+        // Add click listeners to images
+        images.forEach(imgContainer => {
+            imgContainer.addEventListener('click', () => {
+                showIllustration(imgContainer.id);
+                createCrissCrossLines();
+            });
+        });
+
+        // Function to draw connecting lines
+        function drawConnectingLines() {
+            // Clear existing lines
+            connectingLines.innerHTML = '';
+
+            // Set SVG viewBox
+            connectingLines.setAttribute('viewBox', `0 0 ${container.offsetWidth} ${container.offsetHeight}`);
+            connectingLines.style.width = container.offsetWidth + 'px';
+            connectingLines.style.height = container.offsetHeight + 'px';
+
+            // Create paths between images
+            for (let i = 0; i < images.length - 1; i++) {
+                const start = images[i].getBoundingClientRect();
+                const end = images[i + 1].getBoundingClientRect();
+
+                // Calculate positions relative to the container
+                const containerRect = container.getBoundingClientRect();
+                const startX = start.left + start.width - containerRect.left;
+                const startY = start.top + start.height / 2 - containerRect.top;
+                const endX = end.left - containerRect.left;
+                const endY = end.top + end.height / 2 - containerRect.top;
+                
+                const controlX1 = startX + (endX - startX) * 0.25;
+                const controlY1 = startY;
+                const controlX2 = startX + (endX - startX) * 0.75;
+                const controlY2 = endY;
+
+                // Create path
+                const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+                path.setAttribute('d', `M ${startX} ${startY} C ${controlX1} ${controlY1}, ${controlX2} ${controlY2}, ${endX} ${endY}`);
+                connectingLines.appendChild(path);
+            }
+
+            // Specifically connect the last image to "attention.png" if not already connected
+            // Assuming "attention.png" is the last image in the `images` NodeList
+            // This loop already connects all images in order, including the last to "attention.png"
+            // If "attention.png" was already connected, no further action is needed
+        }
+
+        // Draw lines initially and on window resize
+        drawConnectingLines();
+        window.addEventListener('resize', drawConnectingLines);
+    </script>
+</body>
+</html>
